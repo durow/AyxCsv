@@ -5,6 +5,8 @@ VisualStudioVersion = 15.0.27130.2036
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AyxCsv", "AyxCsv\AyxCsv.csproj", "{9F06F444-D06D-4149-8643-35C21EA00944}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AyxCsvTests", "AyxCsvTests\AyxCsvTests.csproj", "{A4297693-FEE4-43B9-A114-C41F6FDF8DBE}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -15,6 +17,10 @@ Global
 		{9F06F444-D06D-4149-8643-35C21EA00944}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{9F06F444-D06D-4149-8643-35C21EA00944}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{9F06F444-D06D-4149-8643-35C21EA00944}.Release|Any CPU.Build.0 = Release|Any CPU
+		{A4297693-FEE4-43B9-A114-C41F6FDF8DBE}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{A4297693-FEE4-43B9-A114-C41F6FDF8DBE}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{A4297693-FEE4-43B9-A114-C41F6FDF8DBE}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{A4297693-FEE4-43B9-A114-C41F6FDF8DBE}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
