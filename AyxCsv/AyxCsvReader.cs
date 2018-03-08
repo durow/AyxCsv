@@ -22,7 +22,7 @@ namespace AyxCsv
             lineReader = new CsvLineReader(separator);
         }
 
-        public DataTable ReadCsvFile(string filename, Encoding encoding = null)
+        public DataTable ReadCsvFileDataTable(string filename, Encoding encoding = null)
         {
             if (encoding == null)
                 encoding = Encoding.Default;
@@ -121,6 +121,84 @@ namespace AyxCsv
             }
         }
 
+        public IEnumerable<string[]> ReadCsvFileArray(string filename, Encoding encoding = null)
+        {
+            if (encoding == null)
+                encoding = Encoding.Default;
+
+            using (var fs = new FileStream(filename, FileMode.Open))
+            {
+                using (var reader = new StreamReader(fs, encoding))
+                {
+                    while (!reader.EndOfStream)
+                    {
+                        var line = reader.ReadLine();
+                        if (string.IsNullOrEmpty(line))
+                            continue;
+
+                        yield return lineReader.ReadLine(line).ToArray();
+                    }
+                }
+            }
+        }
+
+        public IEnumerable<Dictionary<string, string>> ReadCsvFileDict(string filename, Encoding encoding = null)
+        {
+            if (encoding == null)
+                encoding = Encoding.Default;
+
+            using (var fs = new FileStream(filename, FileMode.Open))
+            {
+                using (var reader = new StreamReader(fs, encoding))
+                {
+                    if (reader.EndOfStream)
+                        yield break;
+
+                    var headerLine = reader.ReadLine();
+                    var headers = lineReader.ReadLine(headerLine);
+
+                    while (!reader.EndOfStream)
+                    {
+                        var line = reader.ReadLine();
+                        if (string.IsNullOrEmpty(line))
+                            continue;
+
+                        yield return GetDict(line, headers);
+                    }
+                }
+            }
+        }
+
+        public Dictionary<string, Dictionary<string, string>> ReadCsvFileDoubleDict(string filename, Encoding encoding = null)
+        {
+            if (encoding == null)
+                encoding = Encoding.Default;
+
+            using (var fs = new FileStream(filename, FileMode.Open))
+            {
+                using (var reader = new StreamReader(fs, encoding))
+                {
+                    var result = new Dictionary<string, Dictionary<string, string>>();
+                    if (reader.EndOfStream)
+                        return result;
+
+                    var headerLine = reader.ReadLine();
+                    var headers = lineReader.ReadLine(headerLine);
+
+                    while (!reader.EndOfStream)
+                    {
+                        var line = reader.ReadLine();
+                        if (string.IsNullOrEmpty(line))
+                            continue;
+
+                        var kv = GetKV(line, headers);
+                        result.Add(kv.Key, kv.Value);
+                    }
+                    return result;
+                }
+            }
+        }
+
         public DataTable ReadCsvString(IEnumerable<string> lines)
         {
             var result = new DataTable();
@@ -186,6 +264,38 @@ namespace AyxCsv
             }
 
             return d;
+        }
+
+        private Dictionary<string, string> GetDict(string line, List<string> headers)
+        {
+            var dict = new Dictionary<string, string>();
+            var fields = lineReader.ReadLine(line);
+
+            for (int i = 0; i < headers.Count; i++)
+            {
+                if (i >= fields.Count)
+                    break;
+
+                dict[headers[i]] = fields[i];
+            }
+
+            return dict;
+        }
+
+        private KeyValuePair<string, Dictionary<string, string>> GetKV(string line, List<string> headers)
+        {
+            var dict = new Dictionary<string, string>();
+            var fields = lineReader.ReadLine(line);
+            var key = fields[0];
+
+            for (int i = 1; i < headers.Count; i++)
+            {
+                if (i >= fields.Count)
+                    break;
+
+                dict[headers[i]] = fields[i];
+            }
+            return new KeyValuePair<string, Dictionary<string, string>>(key, dict);
         }
 
         private Dictionary<PropertyInfo, int> GetPropertyMapping<T>(List<string> headers)

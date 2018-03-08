@@ -16,7 +16,7 @@ namespace AyxCsvTests
         public void ReadCsvTest()
         {
             var reader = new AyxCsvReader();
-            var dt = reader.ReadCsvFile("test.csv");
+            var dt = reader.ReadCsvFileDataTable("test.csv");
 
             Assert.IsTrue(dt.Rows.Count > 0);
         }
@@ -25,7 +25,7 @@ namespace AyxCsvTests
         public void ReadCsvTestAdvanced()
         {
             var reader = new AyxCsvReader();
-            var dt = reader.ReadCsvFile("adv.csv");
+            var dt = reader.ReadCsvFileDataTable("adv.csv");
             Assert.IsTrue(dt.Rows.Count > 0);
 
             var writer = new AyxCsvWriter();
