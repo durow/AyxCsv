@@ -47,7 +47,7 @@ namespace AyxCsvTests
             }
         }
 
-        class TestData
+        internal class TestData
         {
             public int IntCol { get; set; }
             public string StrCol { get; set; }

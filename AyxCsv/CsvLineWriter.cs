@@ -40,10 +40,5 @@ namespace AyxCsv
 
             return quotes ? $"\"{field}\"" : field;
         }
-
-        internal object WriteLine(object select)
-        {
-            throw new NotImplementedException();
-        }
     }
 }

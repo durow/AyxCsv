@@ -11,14 +11,39 @@ namespace AyxCsv
     public class AyxCsvWriter
     {
         public char Separator { get; set; } = ',';
-        public bool HaveHeaders { get; set; } = true;
+        public bool HasHeaders { get; set; } = true;
         private CsvLineWriter lineWriter;
 
         public AyxCsvWriter(char separator = ',', bool haveHeaders = true)
         {
             Separator = separator;
-            HaveHeaders = haveHeaders;
+            HasHeaders = haveHeaders;
             lineWriter = new CsvLineWriter(separator);
+        }
+
+        public void WriteCsvFile(string filename, IEnumerable<string[]> data, string[] headers, Encoding encoding = null)
+        {
+            if (encoding == null)
+                encoding = Encoding.Default;
+
+
+            using (var fs = new FileStream(filename, FileMode.Create))
+            {
+                using (var writer = new StreamWriter(fs, encoding))
+                {
+                    if (HasHeaders)
+                    {
+                        var headerLine = lineWriter.WriteLine(headers);
+                        writer.WriteLine(headerLine);
+                    }
+
+                    foreach (var item in data)
+                    {
+                        var line = lineWriter.WriteLine(item);
+                        writer.WriteLine(line);
+                    }
+                }
+            }
         }
 
         public void WriteCsvFile(string filename, DataTable table, Encoding encoding = null)
@@ -31,7 +56,7 @@ namespace AyxCsv
             {
                 using (var writer = new StreamWriter(fs, encoding))
                 {
-                    if (HaveHeaders)
+                    if (HasHeaders)
                     {
                         var headerLine = GetHeaderLine(table);
                         writer.WriteLine(headerLine);
@@ -57,7 +82,7 @@ namespace AyxCsv
             {
                 using (var writer = new StreamWriter(fs, encoding))
                 {
-                    if (HaveHeaders)
+                    if (HasHeaders)
                     {
                         var headerLine = GetHeaderLine(props);
                         writer.WriteLine(headerLine);
