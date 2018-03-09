@@ -96,6 +96,53 @@ namespace AyxCsv
             }
         }
 
+        public void WriteCsvFile(string filename, IEnumerable<string[]> data, Encoding encoding = null)
+        {
+            if (encoding == null)
+                encoding = Encoding.Default;
+
+
+            using (var fs = new FileStream(filename, FileMode.Create))
+            {
+                using (var writer = new StreamWriter(fs, encoding))
+                {
+                    foreach (var item in data)
+                    {
+                        var line = lineWriter.WriteLine(item);
+                        writer.WriteLine(line);
+                    }
+                }
+            }
+        }
+
+        public void WriteCsvFile(string filename, IEnumerable<Dictionary<string,string>> data, Encoding encoding = null)
+        {
+            if (encoding == null)
+                encoding = Encoding.Default;
+
+
+            using (var fs = new FileStream(filename, FileMode.Create))
+            {
+                using (var writer = new StreamWriter(fs, encoding))
+                {
+                    if (data.Count() == 0)
+                        return;
+
+                    if (HasHeaders)
+                    {
+                        var headerLine = lineWriter.WriteLine(data.First().Keys);
+                        writer.WriteLine(headerLine);
+                    }
+
+                    foreach (var item in data)
+                    {
+                        var line = lineWriter.WriteLine(item.Values);
+                        writer.WriteLine(line);
+                    }
+                }
+            }
+        }
+
         private string GetHeaderLine(DataTable table)
         {
             var list = new List<string>();

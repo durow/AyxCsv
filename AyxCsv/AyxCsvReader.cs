@@ -87,35 +87,31 @@ namespace AyxCsv
             if (encoding == null)
                 encoding = Encoding.Default;
 
+            var isDynamic = false;
             if (typeof(T) == typeof(Object))
+                isDynamic = true;
+
+            using (var fs = new FileStream(filename, FileMode.Open))
             {
-                var list = ReadCsvFileDynamic(filename, encoding);
-                foreach (dynamic item in list)
+                using (var reader = new StreamReader(fs, encoding))
                 {
-                    yield return (T)(Object)item;
-                }
-            }
-            else
-            {
-                using (var fs = new FileStream(filename, FileMode.Open))
-                {
-                    using (var reader = new StreamReader(fs, encoding))
+                    if (reader.EndOfStream)
+                        yield break;
+
+                    var headerLine = reader.ReadLine();
+                    var headers = lineReader.ReadLine(headerLine);
+                    var mapping = GetPropertyMapping<T>(headers);
+
+                    while (!reader.EndOfStream)
                     {
-                        if (reader.EndOfStream)
-                            yield break;
+                        var line = reader.ReadLine();
+                        if (string.IsNullOrEmpty(line))
+                            continue;
 
-                        var headerLine = reader.ReadLine();
-                        var headers = lineReader.ReadLine(headerLine);
-                        var mapping = GetPropertyMapping<T>(headers);
-
-                        while (!reader.EndOfStream)
-                        {
-                            var line = reader.ReadLine();
-                            if (string.IsNullOrEmpty(line))
-                                continue;
-
+                        if (isDynamic)
+                            yield return (T)(object)GetDynamic(line, headers);
+                        else
                             yield return GetInstance<T>(line, mapping);
-                        }
                     }
                 }
             }
@@ -199,7 +195,7 @@ namespace AyxCsv
             }
         }
 
-        public DataTable ReadCsvString(IEnumerable<string> lines)
+        public DataTable ReadCsvStringDataTable(IEnumerable<string> lines)
         {
             var result = new DataTable();
 
@@ -211,9 +207,109 @@ namespace AyxCsv
                 AddColumns(result, lines.First());
             }
 
+            var list = lines.ToList();
+            for (int i = 1; i < list.Count; i++)
+            {
+                var line = list[i];
+                if (string.IsNullOrEmpty(line))
+                    continue;
+
+                AddRow(result, line);
+            }
+
+            return result;
+        }
+
+        public IEnumerable<dynamic> ReadCsvStringDynamic(IEnumerable<string> lines)
+        {
+            if (lines.Count() == 0)
+                yield break;
+
+            var headerLine = lines.First();
+            var headers = lineReader.ReadLine(headerLine);
+
+            var list = lines.ToList();
+            for (int i = 1; i < list.Count; i++)
+            {
+                var line = list[i];
+                if (string.IsNullOrEmpty(line))
+                    continue;
+
+                yield return GetDynamic(line, headers);
+            }
+        }
+
+        public IEnumerable<T> ReadCsvStringGeneric<T>(IEnumerable<string> lines)
+        {
+            if (lines.Count() == 0)
+                yield break;
+
+            var headerLine = lines.First();
+            var headers = lineReader.ReadLine(headerLine);
+            var mapping = GetPropertyMapping<T>(headers);
+
+            var isDynamic = false;
+            if (typeof(T) == typeof(Object))
+                isDynamic = true;
+
+            var list = lines.ToList();
+            for (int i = 1; i < list.Count; i++)
+            {
+                var line = list[i];
+                if (string.IsNullOrEmpty(line))
+                    continue;
+
+                if (isDynamic)
+                    yield return (T)(object)GetDynamic(line, headers);
+                else
+                    yield return GetInstance<T>(line, mapping);
+            }
+        }
+
+        public IEnumerable<Dictionary<string, string>> ReadCsvStringDict(IEnumerable<string> lines)
+        {
+            if (lines.Count() == 0)
+                yield break;
+
+            var headerLine = lines.First();
+            var headers = lineReader.ReadLine(headerLine);
+
             foreach (var line in lines)
             {
-                AddRow(result, line);
+                if (string.IsNullOrEmpty(line))
+                    continue;
+
+                yield return GetDict(line, headers);
+            }
+        }
+
+        public IEnumerable<string[]> ReadCsvStringArray(IEnumerable<string> lines)
+        {
+            foreach (var line in lines)
+            {
+                if (string.IsNullOrEmpty(line))
+                    continue;
+
+                yield return lineReader.ReadLine(line).ToArray();
+            }
+        }
+
+        public Dictionary<string, Dictionary<string, string>> ReadCsvStringDoubleDict(IEnumerable<string> lines)
+        {
+            var result = new Dictionary<string, Dictionary<string, string>>();
+            if (lines.Count() == 0)
+                return result;
+
+            var headerLine = lines.First();
+            var headers = lineReader.ReadLine(headerLine);
+
+            foreach (var line in lines)
+            {
+                if (string.IsNullOrEmpty(line))
+                    continue;
+
+                var kv = GetKV(line, headers);
+                result.Add(kv.Key, kv.Value);
             }
 
             return result;
