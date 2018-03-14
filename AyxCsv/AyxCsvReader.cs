@@ -117,6 +117,41 @@ namespace AyxCsv
             }
         }
 
+        public IEnumerable<T> ReadCsvFileGeneric<T>(string filename, Dictionary<string, string> mapping, Encoding encoding = null)
+        {
+            if (encoding == null)
+                encoding = Encoding.Default;
+
+            var isDynamic = false;
+            if (typeof(T) == typeof(Object))
+                isDynamic = true;
+
+            using (var fs = new FileStream(filename, FileMode.Open))
+            {
+                using (var reader = new StreamReader(fs, encoding))
+                {
+                    if (reader.EndOfStream)
+                        yield break;
+
+                    var headerLine = reader.ReadLine();
+                    var headers = lineReader.ReadLine(headerLine);
+                    var map = GetPropertyMapping<T>(mapping, headers);
+
+                    while (!reader.EndOfStream)
+                    {
+                        var line = reader.ReadLine();
+                        if (string.IsNullOrEmpty(line))
+                            continue;
+
+                        if (isDynamic)
+                            yield return (T)(object)GetDynamic(line, headers);
+                        else
+                            yield return GetInstance<T>(line, map);
+                    }
+                }
+            }
+        }
+
         public IEnumerable<string[]> ReadCsvFileArray(string filename, Encoding encoding = null)
         {
             if (encoding == null)
@@ -405,6 +440,23 @@ namespace AyxCsv
             foreach (var prop in props)
             {
                 var index = headers.IndexOf(prop.Name);
+                result.Add(prop, index);
+            }
+
+            return result;
+        }
+
+        public Dictionary<PropertyInfo, int> GetPropertyMapping<T>(Dictionary<string, string> mapping, List<string> headers)
+        {
+            var result = new Dictionary<PropertyInfo, int>();
+            var props = typeof(T).GetProperties()
+                .Where(p => p.PropertyType.IsValueType || p.PropertyType == typeof(string))
+                .Where(p => mapping.Keys.Contains(p.Name) && headers.Contains(mapping[p.Name]))
+                .ToList();
+
+            foreach (var prop in props)
+            {
+                var index = headers.IndexOf(mapping[prop.Name]);
                 result.Add(prop, index);
             }
 
